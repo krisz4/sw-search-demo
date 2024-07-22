@@ -4,7 +4,7 @@ import LottieView from "lottie-react-native";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-export const ListEmptyComponent = () => {
+export const ListEmptyComponent = ({ isError }: { isError: boolean }) => {
   return (
     <View style={styles.emptyContainer}>
       <LottieView
@@ -13,7 +13,11 @@ export const ListEmptyComponent = () => {
         autoPlay
         loop
       />
-      <Text style={styles.text}>No results...</Text>
+      <Text style={styles.text}>
+        {isError
+          ? "Error while fetching data. Check your network connection and try again"
+          : "No results..."}
+      </Text>
     </View>
   );
 };

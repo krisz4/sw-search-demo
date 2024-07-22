@@ -25,7 +25,11 @@ import {
   Text,
   View,
 } from "react-native";
-import { FlatList, TextInput } from "react-native-gesture-handler";
+import {
+  FlatList,
+  RefreshControl,
+  TextInput,
+} from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GeneralContext } from "./_layout";
 
@@ -36,10 +40,11 @@ const Home = () => {
   const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(0);
   const [sort, setSort] = useState(defaultSorting);
+  const [manualFetching, setManualFetching] = useState(false);
 
   const fontsLoaded = useContext(GeneralContext);
 
-  const { data, isFetching, isLoading, isError, refetch } = useQuery({
+  const { data, isFetching, isError, refetch } = useQuery({
     queryKey: ["characters", query],
     queryFn: () =>
       getCharacters({
@@ -96,7 +101,7 @@ const Home = () => {
           <Spacer height={12} />
           <PageSizeSelector pageSize={pageSize} setPageSize={setPageSize} />
         </View>
-        {isFetching ? (
+        {isFetching && !manualFetching ? (
           <View style={styles.loadingContainer}>
             <LottieView
               source={require("../assets/animations/Animation_loading.json")}
@@ -108,8 +113,18 @@ const Home = () => {
           </View>
         ) : (
           <FlatList
+            refreshControl={
+              <RefreshControl
+                refreshing={manualFetching}
+                onRefresh={async () => {
+                  setManualFetching(true);
+                  await refetch();
+                  setManualFetching(false);
+                }}
+              />
+            }
             contentContainerStyle={styles.listContainer}
-            ListEmptyComponent={<ListEmptyComponent />}
+            ListEmptyComponent={<ListEmptyComponent isError={isError} />}
             ListHeaderComponent={
               <CharacterListHeader sort={sort} setSort={setSort} />
             }
