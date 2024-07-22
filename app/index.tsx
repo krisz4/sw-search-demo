@@ -1,27 +1,43 @@
 import { Character } from "@/apis/apiTypes";
 import { getCharacters } from "@/apis/swApis";
+import {
+  CharacterListHeader,
+  ListEmptyComponent,
+  PageSizeSelector,
+  Pagination,
+} from "@/components/Home";
 import { Spacer } from "@/components/Spacer";
-import { backgroundColor, primaryColor } from "@/constants/Colors";
+import {
+  backgroundColor,
+  primaryColor,
+  secondaryColor,
+} from "@/constants/Colors";
 import { defaultSorting } from "@/constants/general";
 import { sortCharacters } from "@/utils";
-import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import React, { useCallback, useEffect, useState } from "react";
+import { debounce } from "lodash";
+import LottieView from "lottie-react-native";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
+  Dimensions,
   ListRenderItemInfo,
-  Pressable,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import { FlatList, TextInput } from "react-native-gesture-handler";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { GeneralContext } from "./_layout";
+
+const { width, height } = Dimensions.get("window");
 
 const Home = () => {
   const [query, setQuery] = useState("");
   const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(0);
   const [sort, setSort] = useState(defaultSorting);
+
+  const fontsLoaded = useContext(GeneralContext);
 
   const { data, isFetching, isLoading, isError, refetch } = useQuery({
     queryKey: ["characters", query],
@@ -46,27 +62,18 @@ const Home = () => {
     []
   );
 
-  const handleSort = useCallback(
-    (field: keyof Character) => {
-      if (sort.secondarySort.field === field) {
-        sort.secondarySort.ascending
-          ? setSort((state) => ({
-              secondarySort: {
-                ...state.secondarySort,
-                ascending: false,
-              },
-            }))
-          : setSort(defaultSorting);
-      } else {
-        setSort({ secondarySort: { field, ascending: true } });
-      }
-    },
-    [sort]
+  const handleSearchInput = useCallback(
+    debounce((text: string) => setQuery(text), 1500),
+    []
   );
 
   useEffect(() => {
     setCurrentPage(0);
   }, [query]);
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
     <View style={styles.container}>
@@ -76,112 +83,51 @@ const Home = () => {
         </View>
         <TextInput
           placeholder="Type character name..."
-          placeholderTextColor="#ffffe0"
+          placeholderTextColor={secondaryColor}
           style={styles.input}
-          value={query}
-          onChangeText={setQuery}
+          onChangeText={handleSearchInput}
         />
         <Spacer height={12} />
         <View>
           <Text style={styles.name}>
             Current sorting:{" "}
-            {[sort.primarySort?.field, sort.secondarySort.field].toString()}
+            {[sort.secondarySort.field, sort.primarySort?.field].toString()}
           </Text>
-          <View style={styles.row}>
-            <Text style={styles.name}>Page size:</Text>
-            <Pressable
-              onPress={() => setPageSize(25)}
-              style={styles.selectable}
-            >
-              <Text style={styles.name}>25</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setPageSize(50)}
-              style={styles.selectable}
-            >
-              <Text style={styles.name}>50</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setPageSize(100)}
-              style={styles.selectable}
-            >
-              <Text style={styles.name}>100</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setPageSize(150)}
-              style={styles.selectable}
-            >
-              <Text style={styles.name}>150</Text>
-            </Pressable>
+          <Spacer height={12} />
+          <PageSizeSelector pageSize={pageSize} setPageSize={setPageSize} />
+        </View>
+        {isFetching ? (
+          <View style={styles.loadingContainer}>
+            <LottieView
+              source={require("../assets/animations/Animation_loading.json")}
+              style={styles.lottie}
+              autoPlay
+              loop
+            />
+            <Text style={styles.name}>Fetching data...</Text>
           </View>
-        </View>
-        <FlatList
-          contentContainerStyle={styles.listContainer}
-          ListHeaderComponent={
-            <View style={styles.row}>
-              <Pressable
-                onPress={() => handleSort("name")}
-                style={[styles.row, styles.cell]}
-              >
-                <Text style={styles.name}>Name</Text>
-                {sort.secondarySort.field === "name" &&
-                  (sort.secondarySort.ascending ? (
-                    <Ionicons name="arrow-down" color={primaryColor} />
-                  ) : (
-                    <Ionicons name="arrow-up" color={primaryColor} />
-                  ))}
-              </Pressable>
-              <Pressable
-                onPress={() => handleSort("eye_color")}
-                style={[styles.row, styles.cell]}
-              >
-                <Text style={styles.name}>Eye color</Text>
-                {sort.secondarySort.field === "eye_color" &&
-                  (sort.secondarySort.ascending ? (
-                    <Ionicons name="arrow-down" color={primaryColor} />
-                  ) : (
-                    <Ionicons name="arrow-up" color={primaryColor} />
-                  ))}
-              </Pressable>
-              <Pressable
-                onPress={() => handleSort("created")}
-                style={[styles.row, styles.cell]}
-              >
-                <Text style={styles.name}>Created at</Text>
-                {sort.secondarySort.field === "created" &&
-                  (sort.secondarySort.ascending ? (
-                    <Ionicons name="arrow-down" color={primaryColor} />
-                  ) : (
-                    <Ionicons name="arrow-up" color={primaryColor} />
-                  ))}
-              </Pressable>
-            </View>
-          }
-          data={sortedData.slice(
-            currentPage * pageSize,
-            (currentPage + 1) * pageSize - 1
-          )}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.name + item.birth_year}
+        ) : (
+          <FlatList
+            contentContainerStyle={styles.listContainer}
+            ListEmptyComponent={<ListEmptyComponent />}
+            ListHeaderComponent={
+              <CharacterListHeader sort={sort} setSort={setSort} />
+            }
+            data={sortedData.slice(
+              currentPage * pageSize,
+              (currentPage + 1) * pageSize - 1
+            )}
+            renderItem={renderItem}
+            keyExtractor={(item) => item.name + item.birth_year}
+          />
+        )}
+        <Spacer height={8} />
+        <Pagination
+          dataLength={data?.count || 0}
+          pageSize={pageSize}
+          setCurrentPage={setCurrentPage}
+          currentPage={currentPage}
         />
-        <View style={styles.paginationContainer}>
-          <Text style={styles.name}>Pages:</Text>
-          {data?.count
-            ? Array.from(Array(Math.ceil(data.count / pageSize)).keys()).map(
-                (page) => (
-                  <Pressable
-                    key={`pagination_${page + 1}`}
-                    onPress={() => {
-                      setCurrentPage(page);
-                    }}
-                    style={styles.selectable}
-                  >
-                    <Text style={styles.name}>{page + 1}</Text>
-                  </Pressable>
-                )
-              )
-            : null}
-        </View>
       </SafeAreaView>
     </View>
   );
@@ -208,7 +154,8 @@ const styles = StyleSheet.create({
   },
   title: {
     color: primaryColor,
-    fontSize: 24,
+    fontSize: 18,
+    fontFamily: "StarJedi",
   },
   input: {
     borderWidth: 1,
@@ -222,11 +169,6 @@ const styles = StyleSheet.create({
   name: {
     color: primaryColor,
   },
-  paginationContainer: {
-    flexDirection: "row",
-    gap: 12,
-    alignItems: "flex-end",
-  },
   listItemContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -235,11 +177,10 @@ const styles = StyleSheet.create({
     flex: 1,
     color: primaryColor,
   },
-  selectable: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: primaryColor,
+  loadingContainer: {
+    height: height / 2,
+    alignItems: "center",
+    justifyContent: "center",
   },
+  lottie: { flex: 1, width: width - 24, height: width },
 });

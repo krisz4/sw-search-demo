@@ -1,44 +1,53 @@
-import { DarkTheme, ThemeProvider } from "@react-navigation/native";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { SplashScreen, Stack } from "expo-router";
+import { createContext, useEffect, useState } from "react";
 import "react-native-reanimated";
 
+import { secondaryColor } from "@/constants/Colors";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import LottieView from "lottie-react-native";
+import { Modal, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
 const queryClient = new QueryClient();
+SplashScreen.hideAsync();
+
+export const GeneralContext = createContext(false);
 
 export default function RootLayout() {
+  const [finishedLoading, setFinishedLoading] = useState(false);
+
   const [loaded] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    StarJedi: require("../assets/fonts/StarJedi-DGRW.ttf"),
   });
 
   useEffect(() => {
     if (loaded) {
-      SplashScreen.hideAsync();
+      setTimeout(() => setFinishedLoading(true), 2000);
     }
   }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
 
   return (
     <GestureHandlerRootView>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider value={DarkTheme}>
+        <GeneralContext.Provider value={loaded}>
           <SafeAreaProvider>
+            <Modal visible={!finishedLoading}>
+              <View style={{ backgroundColor: secondaryColor, flex: 1 }}>
+                <LottieView
+                  source={require("../assets/animations/Animation_droid.json")}
+                  style={{ flex: 1, width: "100%", height: "100%" }}
+                  autoPlay
+                  loop
+                />
+              </View>
+            </Modal>
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="+not-found" />
             </Stack>
           </SafeAreaProvider>
-        </ThemeProvider>
+        </GeneralContext.Provider>
       </QueryClientProvider>
     </GestureHandlerRootView>
   );
