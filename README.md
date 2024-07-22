@@ -105,11 +105,11 @@ Background color:"black"
 
 1.  Clone the repository:
 
-`git clone <repository-url>`
+`git clone https://github.com/krisz4/sw-search-demo`
 
 2.  Navigate to the project directory:
 
-`cd star-wars-character-search`
+`cd sw-search-demo`
 
 3.  Install dependencies:
 
