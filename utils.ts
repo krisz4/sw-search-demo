@@ -10,13 +10,14 @@ export const fetchAllCharacters = async (
   let nextUrl: string | null = `people${
     baseParams ? "?" + baseParams + "&" : "?"
   }page=${currentPage}`;
-  console.log(nextUrl);
   let firstResponse = await API.get<GetCharactersResp>(nextUrl);
-  console.log("count", firstResponse.data.count);
-  while (allResults.length < firstResponse.data.count && nextUrl) {
-    console.log(nextUrl);
+
+  while (
+    allResults.length < firstResponse?.data.count &&
+    firstResponse?.data.count &&
+    nextUrl
+  ) {
     const response = await API.get<GetCharactersResp>(nextUrl);
-    console.log("response", response.data.count);
     const data = response.data;
 
     allResults = [...allResults, ...data.results];

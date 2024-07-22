@@ -38,23 +38,23 @@ export default axiosService;
 
 export const API = {
   async get<T>(url: string, config: AxiosRequestConfig = {}) {
-    return axiosService.instance.get<T>(url, config);
+    return axiosService.instance?.get<T>(url, config);
   },
   async post<T>(url: string, data?: unknown, config: AxiosRequestConfig = {}) {
-    return axiosService.instance.post<T>(url, data, config);
+    return axiosService.instance?.post<T>(url, data, config);
   },
   async put<T>(url: string, data: unknown, config: AxiosRequestConfig = {}) {
-    return axiosService.instance.put<T>(url, data, config);
+    return axiosService.instance?.put<T>(url, data, config);
   },
   async patch<T>(url: string, data?: unknown, config: AxiosRequestConfig = {}) {
-    return axiosService.instance.patch<T>(url, data, config);
+    return axiosService.instance?.patch<T>(url, data, config);
   },
   async delete<T>(
     url: string,
     data?: unknown,
     config: AxiosRequestConfig = {}
   ) {
-    return axiosService.instance.delete<T>(url, {
+    return axiosService.instance?.delete<T>(url, {
       ...config,
       data,
     });
