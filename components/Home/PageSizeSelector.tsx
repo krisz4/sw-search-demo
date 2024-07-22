@@ -18,7 +18,7 @@ export const PageSizeSelector = ({
       {pageSizeOptions.map((size) => (
         <Pressable
           key={`pageSizeOption_${size}`}
-          onPress={() => setPageSize(25)}
+          onPress={() => setPageSize(size)}
           style={
             pageSize === size
               ? [styles.selectable, styles.selected]
