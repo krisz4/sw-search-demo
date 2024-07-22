@@ -29,14 +29,14 @@ The home screen is the main interface where users can search for characters, sor
 #### State Management
 
 - useState hook to manage components internal state
-- react-query to manage server side data
-- react context to pass down wheter fonts are loaded
-  - I want to show a custom loading screen while app is loading the fonts, this causes the screens to render too, but without the fonts loading first it can cause an error
+- react-query to manage server-side data
+- react context to pass down whether fonts are loaded
+  - I want to show a custom loading screen while the app is loading the fonts, this causes the screens to render too, but without the fonts loading first it can cause an error
 
 #### API Data Fetching
 
 The app uses the `useQuery` hook from `@tanstack/react-query` to fetch character data from the API.
-Stale time is set to 60000ms meaning the data won't be refetched again until one minute passed by or user manually refetches using pull to refresh.
+Stale time is set to 60000ms meaning the data won't be refetched again until one minute passed by or the user manually refetches using pull to refresh.
 
 ```
 queryFn: () =>
@@ -48,15 +48,15 @@ filters: { search:  query },
 }),
 ```
 
-getCharacters function makes a series of api calls to fetch all the characters from the endpoint. By default the SWAPI endpoint only returns 10 character at a time. But to satisfy the sorting requirments of the task I have to prefetch all the data and do the sorting and pagination on the client side. If I had access to the backend side of this application I would do the sorting and pagination on the server side when quering the data from the db. This way I could fetch only the data visible on the screen and save internet usage and time for the user. Also I would prefer to do infinite scroll instead of pagination but this solution better showcases the page size requirment in the task.
+getCharacters function makes a series of api calls to fetch all the characters from the endpoint. By default, the SWAPI endpoint only returns 10 characters at a time. But to satisfy the sorting requirements of the task I have to prefetch all the data and do the sorting and pagination on the client side. If I had access to the backend side of this application I would do the sorting and pagination on the server side when querying the data from the db. This way I could fetch only the data visible on the screen and save internet usage and time for the user. Also, I would prefer to do infinite scroll instead of pagination but this solution better showcases the page size requirement in the task.
 
-The filters props responsible for fetching the appropriete data for the search input value. The input uses debounce to optimize the number of requests made while typing.
+The filter props responsible for fetching the appropriate data for the search input value. The input uses debounce to optimize the number of requests made while typing.
 
 #### Sorting and Rendering
 
-Characters are sorted based on the selected criteria using the `sortCharacters` utility function and then rendered in a `FlatList`.
-Sorting happens when user presses the column header.
-First time selected it will sort in ascendind order, second time descending order, third time will reset the default sorting.
+Characters are sorted based on the selected criteria using the `sortCharacters` utility function and rendered in a `FlatList`.
+Sorting happens when the user presses the column header.
+The first time selected it will sort in ascending order, the second time in descending order, and the third time will reset the default sorting.
 Default sorting: 1. First, list characters with blue eyes in alphabetical order. 2. Then, continue the list with other characters sorted by "created date".
 
 ```
@@ -78,16 +78,18 @@ const renderItem = useCallback(
 
 ### Styles
 
-App has a simple design using the colors of the classic star wars logo.
+The app has a simple design using the colors of the classic Star Wars logo.
 Primary color:#ffed1e
 Secondary color:#ffffe0
 Background color:"black"
 
-### Techologies user
+### Technologies user
 
-- axios for API calls
-- useQuery for fetch optimalization
-- lodash for textinput debounce
+- Expo framework for ease of development
+- Expo-router for navigation 
+- Axios for API calls
+- useQuery for fetch optimization
+- lodash for text input debounce
 - jest, react-testing-library for testing
 - vector-icons to display current sorting
 - lottie for animations
