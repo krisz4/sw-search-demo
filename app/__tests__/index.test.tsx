@@ -83,7 +83,7 @@ describe("Home Component", () => {
     // Wait for the debounce period and subsequent API call
     await waitFor(() => {
       expect(axiosService.instance.get).toHaveBeenCalledWith(
-        expect.stringContaining("search=Luke+Skywalke")
+        expect.stringContaining("search=Luke+Skywalker")
       );
     });
   });
