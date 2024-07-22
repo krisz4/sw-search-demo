@@ -19,7 +19,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const Home = () => {
   const [query, setQuery] = useState("");
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(0);
   const [sort, setSort] = useState(defaultSorting);
 
@@ -35,7 +35,7 @@ const Home = () => {
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<Character>) => (
-      <View style={styles.paginationContainer}>
+      <View style={styles.listItemContainer}>
         <Text style={styles.cell}>{item.name}</Text>
         <Text style={styles.cell}>{item.eye_color}</Text>
         <Text style={styles.cell}>
@@ -74,7 +74,13 @@ const Home = () => {
         <View style={styles.header}>
           <Text style={styles.title}>Star Wars Character Search</Text>
         </View>
-        <TextInput style={styles.input} value={query} onChangeText={setQuery} />
+        <TextInput
+          placeholder="Type character name..."
+          placeholderTextColor="#ffffe0"
+          style={styles.input}
+          value={query}
+          onChangeText={setQuery}
+        />
         <Spacer height={12} />
         <View>
           <Text style={styles.name}>
@@ -83,13 +89,28 @@ const Home = () => {
           </Text>
           <View style={styles.row}>
             <Text style={styles.name}>Page size:</Text>
-            <Pressable>
+            <Pressable
+              onPress={() => setPageSize(50)}
+              style={styles.selectable}
+            >
+              <Text style={styles.name}>25</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setPageSize(50)}
+              style={styles.selectable}
+            >
               <Text style={styles.name}>50</Text>
             </Pressable>
-            <Pressable>
+            <Pressable
+              onPress={() => setPageSize(100)}
+              style={styles.selectable}
+            >
               <Text style={styles.name}>100</Text>
             </Pressable>
-            <Pressable>
+            <Pressable
+              onPress={() => setPageSize(150)}
+              style={styles.selectable}
+            >
               <Text style={styles.name}>150</Text>
             </Pressable>
           </View>
@@ -144,6 +165,7 @@ const Home = () => {
           keyExtractor={(item) => item.name + item.birth_year}
         />
         <View style={styles.paginationContainer}>
+          <Text style={styles.name}>Pages:</Text>
           {data?.count
             ? Array.from(Array(Math.ceil(data.count / pageSize)).keys()).map(
                 (page) => (
@@ -152,6 +174,7 @@ const Home = () => {
                     onPress={() => {
                       setCurrentPage(page);
                     }}
+                    style={styles.selectable}
                   >
                     <Text style={styles.name}>{page + 1}</Text>
                   </Pressable>
@@ -181,6 +204,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",
+    gap: 8,
   },
   title: {
     color: primaryColor,
@@ -200,10 +224,22 @@ const styles = StyleSheet.create({
   },
   paginationContainer: {
     flexDirection: "row",
-    justifyContent: "space-around",
+    gap: 12,
+    alignItems: "flex-end",
+  },
+  listItemContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   cell: {
     flex: 1,
     color: primaryColor,
+  },
+  selectable: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: primaryColor,
   },
 });
