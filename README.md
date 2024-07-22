@@ -1,50 +1,139 @@
-# Welcome to your Expo app 👋
+# Star Wars Character Search App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Overview
 
-## Get started
+The Star Wars Character Search App allows users to search for and sort through a list of characters from the Star Wars universe. The app fetches character data from an external API and displays the results in a user-friendly interface.
 
-1. Install dependencies
+## Features
 
-   ```bash
-   npm install
-   ```
+- **Character Search**: Type in the name of a Star Wars character to search for them.
+- **Sorting**: Sort characters by name, eye color, or creation date.
+- **Pagination**: View results in pages with selectable page sizes.
+- **Data Fetching**: Efficiently fetches data from the Star Wars API.
 
-2. Start the app
+## Home Screen
 
-   ```bash
-    npx expo start
-   ```
+The home screen is the main interface where users can search for characters, sort the results, and navigate through pages.
 
-In the output, you'll find options to open the app in a
+### Components
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- **Header**: Displays the app title.
+- **Search Input**: A text input field where users can type a character's name to search.
+- **Sort Options**: Buttons to sort the character list by name, eye color, or creation date.
+- **Page Size Selector**: Options to select the number of results per page (25, 50, 100, 150).
+- **Character List**: A list of characters that match the search query and sorting criteria.
+- **Pagination Controls**: Controls to navigate through different pages of results.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Code Structure
 
-## Get a fresh project
+#### State Management
 
-When you're ready, run:
+- useState hook to manage components internal state
+- react-query to manage server side data
+- react context to pass down wheter fonts are loaded
+  - I want to show a custom loading screen while app is loading the fonts, this causes the screens to render too, but without the fonts loading first it can cause an error
 
-```bash
-npm run reset-project
+#### API Data Fetching
+
+The app uses the `useQuery` hook from `@tanstack/react-query` to fetch character data from the API.
+Stale time is set to 60000ms meaning the data won't be refetched again until one minute passed by or user manually refetches using pull to refresh.
+
+```
+queryFn: () =>
+
+getCharacters({
+
+filters: { search:  query },
+
+}),
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+getCharacters function makes a series of api calls to fetch all the characters from the endpoint. By default the SWAPI endpoint only returns 10 character at a time. But to satisfy the sorting requirments of the task I have to prefetch all the data and do the sorting and pagination on the client side. If I had access to the backend side of this application I would do the sorting and pagination on the server side when quering the data from the db. This way I could fetch only the data visible on the screen and save internet usage and time for the user. Also I would prefer to do infinite scroll instead of pagination but this solution better showcases the page size requirment in the task.
 
-## Learn more
+The filters props responsible for fetching the appropriete data for the search input value. The input uses debounce to optimize the number of requests made while typing.
 
-To learn more about developing your project with Expo, look at the following resources:
+#### Sorting and Rendering
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Characters are sorted based on the selected criteria using the `sortCharacters` utility function and then rendered in a `FlatList`.
+Sorting happens when user presses the column header.
+First time selected it will sort in ascendind order, second time descending order, third time will reset the default sorting.
+Default sorting: 1. First, list characters with blue eyes in alphabetical order. 2. Then, continue the list with other characters sorted by "created date".
 
-## Join the community
+```
+const sortedData = sortCharacters(data?.results || ([] as Character[]), sort);
 
-Join our community of developers creating universal apps.
+const renderItem = useCallback(
+  ({ item }: ListRenderItemInfo<Character>) => (
+    <View style={styles.listItemContainer}>
+      <Text style={styles.cell}>{item.name}</Text>
+      <Text style={styles.cell}>{item.eye_color}</Text>
+      <Text style={styles.cell}>
+        {new Date(item.created).toLocaleDateString()}
+      </Text>
+    </View>
+  ),
+  []
+);
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Styles
+
+App has a simple design using the colors of the classic star wars logo.
+Primary color:#ffed1e
+Secondary color:#ffffe0
+Background color:"black"
+
+### Techologies user
+
+- axios for API calls
+- useQuery for fetch optimalization
+- lodash for textinput debounce
+- jest, react-testing-library for testing
+- vector-icons to display current sorting
+- lottie for animations
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js
+- npm or yarn
+
+### Installation
+
+1.  Clone the repository:
+
+`git clone <repository-url>`
+
+2.  Navigate to the project directory:
+
+`cd star-wars-character-search`
+
+3.  Install dependencies:
+
+`npm install
+or
+yarn install`
+
+### Running the App
+
+Start the development server:
+
+`npm start
+or
+yarn start`
+
+### Running Tests
+
+The app uses Jest for unit testing. Run the tests with the following command:
+
+`npm test
+ or
+yarn test`
+
+## Usage
+
+1.  **Search for Characters**: Type the name of a character in the search input.
+2.  **Sort Results**: Click on the column headers (Name, Eye color, Created at) to sort the results.
+3.  **Change Page Size**: Select the desired page size from the page size options.
+4.  **Navigate Pages**: Use the pagination controls to navigate through different pages of results.
