@@ -90,7 +90,7 @@ const Home = () => {
           <View style={styles.row}>
             <Text style={styles.name}>Page size:</Text>
             <Pressable
-              onPress={() => setPageSize(50)}
+              onPress={() => setPageSize(25)}
               style={styles.selectable}
             >
               <Text style={styles.name}>25</Text>
@@ -159,7 +159,7 @@ const Home = () => {
           }
           data={sortedData.slice(
             currentPage * pageSize,
-            currentPage + 1 * pageSize
+            (currentPage + 1) * pageSize - 1
           )}
           renderItem={renderItem}
           keyExtractor={(item) => item.name + item.birth_year}
