@@ -1,6 +1,10 @@
 import { Character } from "@/apis/apiTypes";
 import { getCharacters } from "@/apis/swApis";
+import { Spacer } from "@/components/Spacer";
 import { backgroundColor, primaryColor } from "@/constants/Colors";
+import { defaultSorting } from "@/constants/general";
+import { sortCharacters } from "@/utils";
+import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import React, { useCallback, useEffect, useState } from "react";
 import {
@@ -17,6 +21,7 @@ const Home = () => {
   const [query, setQuery] = useState("");
   const [pageSize, setPageSize] = useState(50);
   const [currentPage, setCurrentPage] = useState(0);
+  const [sort, setSort] = useState(defaultSorting);
 
   const { data, isFetching, isLoading, isError, refetch } = useQuery({
     queryKey: ["characters", query],
@@ -26,19 +31,37 @@ const Home = () => {
       }),
     staleTime: 60000,
   });
-  console.log("isfetching", isFetching);
+  const sortedData = sortCharacters(data?.results || ([] as Character[]), sort);
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<Character>) => (
       <View style={styles.paginationContainer}>
-        <Text style={styles.name}>{item.name}</Text>
-        <Text style={styles.name}>{item.eye_color}</Text>
-        <Text style={styles.name}>
+        <Text style={styles.cell}>{item.name}</Text>
+        <Text style={styles.cell}>{item.eye_color}</Text>
+        <Text style={styles.cell}>
           {new Date(item.created).toLocaleDateString()}
         </Text>
       </View>
     ),
     []
+  );
+
+  const handleSort = useCallback(
+    (field: keyof Character) => {
+      if (sort.secondarySort.field === field) {
+        sort.secondarySort.ascending
+          ? setSort((state) => ({
+              secondarySort: {
+                ...state.secondarySort,
+                ascending: false,
+              },
+            }))
+          : setSort(defaultSorting);
+      } else {
+        setSort({ secondarySort: { field, ascending: true } });
+      }
+    },
+    [sort]
   );
 
   useEffect(() => {
@@ -52,8 +75,68 @@ const Home = () => {
           <Text style={styles.title}>Star Wars Character Search</Text>
         </View>
         <TextInput style={styles.input} value={query} onChangeText={setQuery} />
+        <Spacer height={12} />
+        <View>
+          <Text style={styles.name}>
+            Current sorting:{" "}
+            {[sort.primarySort?.field, sort.secondarySort.field].toString()}
+          </Text>
+          <View style={styles.row}>
+            <Text style={styles.name}>Page size:</Text>
+            <Pressable>
+              <Text style={styles.name}>50</Text>
+            </Pressable>
+            <Pressable>
+              <Text style={styles.name}>100</Text>
+            </Pressable>
+            <Pressable>
+              <Text style={styles.name}>150</Text>
+            </Pressable>
+          </View>
+        </View>
         <FlatList
-          data={data?.results.slice(
+          contentContainerStyle={styles.listContainer}
+          ListHeaderComponent={
+            <View style={styles.row}>
+              <Pressable
+                onPress={() => handleSort("name")}
+                style={[styles.row, styles.cell]}
+              >
+                <Text style={styles.name}>Name</Text>
+                {sort.secondarySort.field === "name" &&
+                  (sort.secondarySort.ascending ? (
+                    <Ionicons name="arrow-down" color={primaryColor} />
+                  ) : (
+                    <Ionicons name="arrow-up" color={primaryColor} />
+                  ))}
+              </Pressable>
+              <Pressable
+                onPress={() => handleSort("eye_color")}
+                style={[styles.row, styles.cell]}
+              >
+                <Text style={styles.name}>Eye color</Text>
+                {sort.secondarySort.field === "eye_color" &&
+                  (sort.secondarySort.ascending ? (
+                    <Ionicons name="arrow-down" color={primaryColor} />
+                  ) : (
+                    <Ionicons name="arrow-up" color={primaryColor} />
+                  ))}
+              </Pressable>
+              <Pressable
+                onPress={() => handleSort("created")}
+                style={[styles.row, styles.cell]}
+              >
+                <Text style={styles.name}>Created at</Text>
+                {sort.secondarySort.field === "created" &&
+                  (sort.secondarySort.ascending ? (
+                    <Ionicons name="arrow-down" color={primaryColor} />
+                  ) : (
+                    <Ionicons name="arrow-up" color={primaryColor} />
+                  ))}
+              </Pressable>
+            </View>
+          }
+          data={sortedData.slice(
             currentPage * pageSize,
             currentPage + 1 * pageSize
           )}
@@ -88,9 +171,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: backgroundColor,
   },
+  listContainer: {
+    padding: 12,
+  },
   header: {
     alignItems: "center",
     padding: 12,
+  },
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   title: {
     color: primaryColor,
@@ -111,5 +201,9 @@ const styles = StyleSheet.create({
   paginationContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
+  },
+  cell: {
+    flex: 1,
+    color: primaryColor,
   },
 });

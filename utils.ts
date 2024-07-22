@@ -31,19 +31,46 @@ export const fetchAllCharacters = async (
     }
   }
 
-  firstResponse.data.results = sortCharacters(allResults);
+  firstResponse.data.results = allResults;
 
   return firstResponse.data;
 };
 
-const sortCharacters = (characters: Character[]) => {
-  const blueEyes = characters
-    .filter((c) => c.eye_color === "blue")
-    .sort((a, b) => a.name.localeCompare(b.name));
+export const sortCharacters = (
+  characters: Character[],
+  sort: {
+    primarySort?: { field: keyof Character; value: string };
+    secondarySort: { field: keyof Character; ascending: boolean };
+  }
+) => {
+  const { primarySort, secondarySort } = sort;
+
+  const sortFunc = (a: Character, b: Character) => {
+    if (secondarySort.field === "created") {
+      return secondarySort.ascending
+        ? new Date(a.created).getTime() - new Date(b.created).getTime()
+        : new Date(b.created).getTime() - new Date(a.created).getTime();
+    } else {
+      return secondarySort.ascending
+        ? (a[secondarySort.field] as string).localeCompare(
+            b[sort.secondarySort.field] as string
+          )
+        : (b[secondarySort.field] as string).localeCompare(
+            a[secondarySort.field] as string
+          );
+    }
+  };
+
+  const primary = primarySort
+    ? characters
+        .filter((c) => c[primarySort.field] === primarySort.value)
+        .sort((a, b) => a.name.localeCompare(b.name))
+    : [];
   const others = characters
-    .filter((c) => c.eye_color !== "blue")
-    .sort(
-      (a, b) => new Date(a.created).getTime() - new Date(b.created).getTime()
-    );
-  return [...blueEyes, ...others];
+    .filter((c) =>
+      primarySort ? c[primarySort.field] !== primarySort.value : true
+    )
+    .sort(sortFunc);
+
+  return [...primary, ...others];
 };
